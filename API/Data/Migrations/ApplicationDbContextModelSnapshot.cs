@@ -71,7 +71,7 @@ namespace API.Data.Migrations
                     b.Property<string>("CandidateParty")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PollId")
+                    b.Property<int>("PollId")
                         .HasColumnType("int");
 
                     b.Property<int>("QuestionId")
@@ -100,7 +100,9 @@ namespace API.Data.Migrations
                 {
                     b.HasOne("API.Data.Models.Poll", "Poll")
                         .WithMany("PresPoll")
-                        .HasForeignKey("PollId");
+                        .HasForeignKey("PollId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

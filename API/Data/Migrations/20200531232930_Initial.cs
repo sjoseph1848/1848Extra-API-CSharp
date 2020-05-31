@@ -35,7 +35,7 @@ namespace API.Data.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     QuestionId = table.Column<int>(nullable: false),
-                    PollId = table.Column<int>(nullable: true),
+                    PollId = table.Column<int>(nullable: false),
                     Stage = table.Column<string>(nullable: true),
                     RaceId = table.Column<int>(nullable: false),
                     State = table.Column<string>(nullable: true),
@@ -51,7 +51,7 @@ namespace API.Data.Migrations
                         column: x => x.PollId,
                         principalTable: "Polls",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

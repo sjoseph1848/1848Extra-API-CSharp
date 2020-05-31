@@ -12,7 +12,7 @@ using OfficeOpenXml;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class SeedController : ControllerBase
     {
@@ -87,6 +87,63 @@ namespace API.Controllers
                     return new JsonResult(new
                     {
                         Poll = nPolls
+                    });
+                }
+
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ImportPres()
+        {
+            var path = Path.Combine(
+                _env.ContentRootPath,
+                String.Format("Data/Source/PresPolls.xlsx"));
+
+
+            using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read))
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var ep = new ExcelPackage(stream))
+                {
+                    // get the first worksheet
+                    var ws = ep.Workbook.Worksheets[0];
+
+                    // Initialize the record counters
+                    var nPres = 0;
+                    var lstPolls = _context.Polls.ToList();
+                    // iterate through all rows, skipping the first one
+                    for (int nRow = 2; nRow <= ws.Dimension.End.Row; nRow++)
+                    {
+
+                        var row = ws.Cells[nRow, 1, nRow, ws.Dimension.End.Column];
+
+                        // create the prespoll entity and fill it with xlsx data 
+                        var presPoll = new PresPoll();
+                        presPoll.QuestionId = row[nRow, 1].GetValue<int>();
+                        presPoll.PollId = row[nRow, 2].GetValue<int>();
+                        presPoll.Stage = row[nRow, 3].GetValue<string>();
+                        presPoll.RaceId = row[nRow, 4].GetValue<int>();
+                        presPoll.State = row[nRow, 5].GetValue<string>();
+                        presPoll.CandidateName = row[nRow, 6].GetValue<string>();
+                        presPoll.CandidateParty = row[nRow, 7].GetValue<string>();
+                        presPoll.pct = row[nRow, 8].GetValue<int>();
+                        presPoll.Poll = lstPolls.Where(c => c.QuestionId == presPoll.QuestionId).FirstOrDefault();
+
+                        // save the pres poll to the db 
+                        _context.PresPolls.Add(presPoll);
+                        await _context.SaveChangesAsync();
+
+                        //increment the counter 
+                        nPres++;
+                    }
+
+                    return new JsonResult(new
+                    {
+                       PresPoll = nPres
                     });
                 }
 

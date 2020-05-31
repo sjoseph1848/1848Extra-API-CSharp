@@ -24,7 +24,7 @@ namespace API.Data.Models
         [ForeignKey("QuestionId")]
         public int QuestionId { get; set; }
         public virtual Poll Poll { get; set; }
-
+        public int PollId { get; set; }
         public string Stage { get; set; }
         public int RaceId { get; set; }
         public string State { get; set; }

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200531225558_Initial")]
+    [Migration("20200531232930_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,7 +73,7 @@ namespace API.Data.Migrations
                     b.Property<string>("CandidateParty")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PollId")
+                    b.Property<int>("PollId")
                         .HasColumnType("int");
 
                     b.Property<int>("QuestionId")
@@ -102,7 +102,9 @@ namespace API.Data.Migrations
                 {
                     b.HasOne("API.Data.Models.Poll", "Poll")
                         .WithMany("PresPoll")
-                        .HasForeignKey("PollId");
+                        .HasForeignKey("PollId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
