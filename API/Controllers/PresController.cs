@@ -77,7 +77,7 @@ namespace API.Controllers
 
         }
 
-        [HttpGet("election")]
+        [HttpGet("elections")]
         public async Task<ActionResult<IEnumerable<ElectionDto>>> ElectionPolls()
         {
             var DemCandidate = await _context.PresPolls.ToListAsync();
@@ -97,6 +97,12 @@ namespace API.Controllers
                     QuestionId = b.QuestionId,
                     DemCandidateName = b.CandidateName,
                     RepCandidateName = t.CandidateName,
+                    FteGrade = b.FteGrade,
+                    SampleSize = b.SampleSize,
+                    Methodology = b.Methodology,
+                    StartDate = b.StartDate,
+                    EndDate = b.EndDate,
+                    Partisan = b.Partisan,
                     RPct = t.Pct,
                     DPct = b.Pct
 
