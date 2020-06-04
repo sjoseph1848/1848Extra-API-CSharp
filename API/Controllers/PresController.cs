@@ -29,7 +29,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{questionId}")]
-        public async Task<ActionResult<PresPoll>> GetPresPoll(int questionId)
+        public async Task<ActionResult<PresPoll>> FindPresPoll(int questionId)
         {
             var pres = await _context.PresPolls.FindAsync(questionId);
 
@@ -39,6 +39,75 @@ namespace API.Controllers
             }
 
             return pres;
+        }
+
+        [HttpGet("party/{party}")]
+        public async Task<ActionResult<IEnumerable<PresPoll>>> FindByParty(string party)
+        {
+           var partyCandidates = await _context.PresPolls.ToListAsync();
+
+            if( partyCandidates == null)
+            {
+                return NotFound();
+            }
+
+            var singleParty = partyCandidates.Where(x => x.CandidateParty == party);
+
+            return singleParty.ToList();
+
+
+
+        }
+
+        [HttpGet("party/{party}/candidate/{candidateName}")]
+        public async Task<ActionResult<IEnumerable<PresPoll>>> FindByCandidate(string party, string candidateName)
+        {
+            var partyCandidates = await _context.PresPolls.ToListAsync();
+
+            if (partyCandidates == null)
+            {
+                return NotFound();
+            }
+
+          var singleParty = partyCandidates.Where(x => x.CandidateParty == party && x.CandidateName == candidateName);
+
+            return singleParty.ToList();
+
+
+
+        }
+
+        [HttpGet("election")]
+        public async Task<ActionResult<IEnumerable<ElectionDto>>> ElectionPolls()
+        {
+            var DemCandidate = await _context.PresPolls.ToListAsync();
+            var RepCandidate = await _context.PresPolls.ToListAsync();
+
+            if (DemCandidate == null && RepCandidate == null)
+            {
+                return NotFound();
+            }
+
+            var biden = DemCandidate.Where(x => x.CandidateParty == "DEM" && x.CandidateName == "Joseph R. Biden Jr.");
+            var trump = RepCandidate.Where(x => x.CandidateParty == "REP" && x.CandidateName == "Donald Trump");
+            var election = biden.Join(trump,
+                b => b.QuestionId,
+                t => t.QuestionId, (b, t) => new ElectionDto
+                {
+                    QuestionId = b.QuestionId,
+                    DemCandidateName = b.CandidateName,
+                    RepCandidateName = t.CandidateName,
+                    RPct = t.Pct,
+                    DPct = b.Pct
+
+                });
+
+               
+
+            return election.ToList();
+
+
+
         }
     }
 }

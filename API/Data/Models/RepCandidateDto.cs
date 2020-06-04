@@ -1,21 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Data.Models
 {
-    public class PresPoll
+    public class RepCandidateDto
     {
-        public PresPoll()
-        {
-
-        }
-
-        [Key]
-        [Required]
         public int Id { get; set; }
         public int QuestionId { get; set; }
         public int PollId { get; set; }
@@ -33,6 +24,5 @@ namespace API.Data.Models
         public string CandidateName { get; set; }
         public string CandidateParty { get; set; }
         public int Pct { get; set; }
-
     }
 }

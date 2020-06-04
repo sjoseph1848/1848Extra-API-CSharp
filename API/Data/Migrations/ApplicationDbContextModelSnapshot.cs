@@ -19,45 +19,6 @@ namespace API.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("API.Data.Models.Poll", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DisplayName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PollId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PollsterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SponsorIds")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("State")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Polls");
-                });
-
             modelBuilder.Entity("API.Data.Models.PresPoll", b =>
                 {
                     b.Property<int>("Id")
@@ -71,8 +32,29 @@ namespace API.Data.Migrations
                     b.Property<string>("CandidateParty")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FteGrade")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Methodology")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Partisan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Pct")
+                        .HasColumnType("int");
+
                     b.Property<int>("PollId")
                         .HasColumnType("int");
+
+                    b.Property<long>("PollsterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PollsterRatingId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
@@ -80,29 +62,21 @@ namespace API.Data.Migrations
                     b.Property<int>("RaceId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Stage")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("SampleSize")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SponsorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("State")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("pct")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("PollId");
-
                     b.ToTable("PresPolls");
-                });
-
-            modelBuilder.Entity("API.Data.Models.PresPoll", b =>
-                {
-                    b.HasOne("API.Data.Models.Poll", "Poll")
-                        .WithMany("PresPoll")
-                        .HasForeignKey("PollId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

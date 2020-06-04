@@ -26,12 +26,9 @@ namespace API.Data
 
             //Map Entity names to the Db Table Names
             modelBuilder.Entity<PresPoll>().ToTable("PresPolls");
-            modelBuilder.Entity<Poll>().ToTable("Polls");
 
-           
         }
 
         public DbSet<PresPoll> PresPolls { get; set; }
-        public DbSet<Poll> Polls { get; set; }
     }
 }
