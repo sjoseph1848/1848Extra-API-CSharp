@@ -10,6 +10,7 @@ namespace API.Data.Models
         public int QuestionId { get; set; }
         public string DemCandidateName { get; set; }
         public string RepCandidateName { get; set; }
+        public string State { get; set; }
         public string FteGrade { get; set; }
         public int SampleSize { get; set; }
         public string Methodology { get; set; }
