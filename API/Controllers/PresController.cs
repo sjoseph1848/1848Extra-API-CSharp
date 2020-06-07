@@ -150,9 +150,9 @@ namespace API.Controllers
                 });
 
             var stateElection = election.Where(x => x.State == $"{state}")
-                                        .OrderBy(x => x.EndDate);
+                                        .OrderBy(x => x.EndDate).ToList();
 
-            return stateElection.ToList();
+            return stateElection;
 
 
 
