@@ -150,12 +150,49 @@ namespace API.Controllers
                 });
 
             var stateElection = election.Where(x => x.State == $"{state}")
-                                        .OrderBy(x => x.EndDate).ToList();
+                                        .OrderByDescending(x => x.EndDate).ToList();
 
             return stateElection;
+        }
 
+        [HttpGet("elections/national")]
+        public async Task<ActionResult<IEnumerable<ElectionDto>>> ElectionPollsNational()
+        {
+            // Todo: refactor both the state and national polls, create a method for below that just
+            // Todo: takes an argument for the state and 
+            var DemCandidate = await _context.PresPolls.ToListAsync();
+            var RepCandidate = await _context.PresPolls.ToListAsync();
 
+            if (DemCandidate == null && RepCandidate == null)
+            {
+                return NotFound();
+            }
 
+            var biden = DemCandidate.Where(x => x.CandidateParty == "DEM" && x.CandidateName == "Joseph R. Biden Jr.");
+            var trump = RepCandidate.Where(x => x.CandidateParty == "REP" && x.CandidateName == "Donald Trump");
+            var election = biden.Join(trump,
+                b => b.QuestionId,
+                t => t.QuestionId, (b, t) => new ElectionDto
+                {
+                    QuestionId = b.QuestionId,
+                    DemCandidateName = b.CandidateName,
+                    RepCandidateName = t.CandidateName,
+                    FteGrade = b.FteGrade,
+                    State = b.State,
+                    SampleSize = b.SampleSize,
+                    Methodology = b.Methodology,
+                    StartDate = b.StartDate,
+                    EndDate = b.EndDate,
+                    Partisan = b.Partisan,
+                    RPct = t.Pct,
+                    DPct = b.Pct
+
+                });
+
+            var nationalElection = election.Where(x => x.State == null)
+                                       .OrderByDescending(x => x.EndDate).ToList();
+
+            return nationalElection;
         }
     }
 }
