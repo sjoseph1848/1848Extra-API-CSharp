@@ -26,9 +26,16 @@ namespace API.Data
 
             //Map Entity names to the Db Table Names
             modelBuilder.Entity<PresPoll>().ToTable("PresPolls");
-
+            modelBuilder.Entity<Hospitalization>().ToTable("Hospitalization");
+            modelBuilder.Entity<HospByCounty>().ToTable("CountyHospitalizations");
+            modelBuilder.Entity<CasesByCounty>().ToTable("CasesByCounty");
         }
 
+        public DbSet<CasesByCounty> CasesByCounty { get; set; }
+
         public DbSet<PresPoll> PresPolls { get; set; }
+        public DbSet<Hospitalization> Hospitalizations { get; set; }
+
+        public DbSet<HospByCounty> CountyHospitalizations { get; set; }
     }
 }

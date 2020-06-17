@@ -55,8 +55,6 @@ namespace API.Controllers
 
             return singleParty.ToList();
 
-
-
         }
 
         [HttpGet("party/{party}/candidate/{candidateName}")]
