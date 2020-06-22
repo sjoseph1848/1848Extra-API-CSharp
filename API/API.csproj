@@ -19,5 +19,11 @@
     <ProjectReference Include="..\Extra.Models\Extra.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Source\CongressionalPolls\" />
+    <Folder Include="Data\Source\Covid\Death\" />
+    <Folder Include="Data\Source\SenatePolls\" />
+  </ItemGroup>
+
 
 </Project>

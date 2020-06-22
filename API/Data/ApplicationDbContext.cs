@@ -29,6 +29,7 @@ namespace API.Data
             modelBuilder.Entity<Hospitalization>().ToTable("Hospitalization");
             modelBuilder.Entity<HospByCounty>().ToTable("CountyHospitalizations");
             modelBuilder.Entity<CasesByCounty>().ToTable("CasesByCounty");
+            modelBuilder.Entity<DeathByCounty>().ToTable("DeathByCounty");
         }
 
         public DbSet<CasesByCounty> CasesByCounty { get; set; }
@@ -37,5 +38,6 @@ namespace API.Data
         public DbSet<Hospitalization> Hospitalizations { get; set; }
 
         public DbSet<HospByCounty> CountyHospitalizations { get; set; }
+        public DbSet<DeathByCounty> DeathsByCounty { get; set; }
     }
 }

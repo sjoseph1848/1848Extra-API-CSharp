@@ -26,6 +26,60 @@ namespace API.Controllers
             _context = context;
             _env = env;
         }
+        [HttpGet]
+        public async Task<IActionResult> ImportDeathByCounty()
+        {
+            var path = Path.Combine(
+              _env.ContentRootPath,
+              String.Format("Data/Source/Covid/Death/TexasCOVID19Deaths620.xlsx"));
+
+            using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read))
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var ep = new ExcelPackage(stream))
+                {
+                    // get the first worksheet
+                    var ws = ep.Workbook.Worksheets[0];
+                    var lstDeathDates = _context.DeathsByCounty.ToList();
+
+                    // Initialize the record counters
+                    var nDeaths = 0;
+                    // iterate through all rows, skipping the first one
+                    for (int nRow = 2; nRow <= ws.Dimension.End.Row; nRow++)
+                    {
+
+                        var row = ws.Cells[nRow, 1, nRow, ws.Dimension.End.Column];
+                        var dateId = row[nRow, 4].GetValue<DateTime>();
+
+                        if (lstDeathDates.Where(d => d.Date == dateId).Count() == 0)
+                        {
+                            var deathByCounty = new DeathByCounty();
+                            deathByCounty.Date = row[nRow, 4].GetValue<DateTime>();
+                            deathByCounty.County = row[nRow, 1].GetValue<string>();
+                            deathByCounty.Deaths = row[nRow, 3].GetValue<int>();
+
+                            // create the hospbycounty entity and fill it with xlsx data 
+                            // save the hospbycounty to the db 
+                            _context.DeathsByCounty.Add(deathByCounty);
+                            await _context.SaveChangesAsync();
+
+                            //increment the counter 
+                            nDeaths++;
+                        }
+
+                    }
+
+                    return new JsonResult(new
+                    {
+                        DeathByCounty = nDeaths
+                    }); 
+                }
+
+            }
+        }
 
 
         [HttpGet]
@@ -33,7 +87,7 @@ namespace API.Controllers
         {
             var path = Path.Combine(
               _env.ContentRootPath,
-              String.Format("Data/Source/TexasCOVID19CaseCountDatabyCounty616.xlsx"));
+              String.Format("Data/Source/Covid/Cases/TexasCOVID19CaseCountDatabyCounty620.xlsx"));
 
             using (var stream = new FileStream(
                 path,
@@ -89,7 +143,7 @@ namespace API.Controllers
         {
             var path = Path.Combine(
                _env.ContentRootPath,
-               String.Format("Data/Source/TexasCOVID19HospitalizationsbyTSA616.xlsx"));
+               String.Format("Data/Source/Covid/Hospitalizations/TexasCOVID19HospitalizationsbyTSA620.xlsx"));
 
             using (var stream = new FileStream(
                 path,
