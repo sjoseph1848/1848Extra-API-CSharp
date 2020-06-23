@@ -27,7 +27,7 @@ namespace API.Controllers
             return await _context.CasesByCounty.ToListAsync();
         }
 
-        [HttpGet("deaths/{county}")]
+        [HttpGet("cases/{county}")]
         public async Task<ActionResult<IEnumerable<CasesByCounty>>> FindByCounty(string county)
         {
             var counties = await _context.CasesByCounty.ToListAsync();
