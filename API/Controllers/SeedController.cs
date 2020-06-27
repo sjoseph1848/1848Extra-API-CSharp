@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using API.Data;
 using API.Data.Models;
@@ -31,7 +32,7 @@ namespace API.Controllers
         {
             var path = Path.Combine(
               _env.ContentRootPath,
-              String.Format("Data/Source/Covid/Death/TexasCOVID19Deaths622.xlsx"));
+              String.Format("Data/Source/Covid/Death/TexasCOVID19Deaths624.xlsx"));
 
             using (var stream = new FileStream(
                 path,
@@ -87,7 +88,7 @@ namespace API.Controllers
         {
             var path = Path.Combine(
               _env.ContentRootPath,
-              String.Format("Data/Source/Covid/Cases/TexasCOVID19CaseCountDatabyCounty622.xlsx"));
+              String.Format("Data/Source/Covid/Cases/TexasCOVID19CaseCountDatabyCounty624.xlsx"));
 
             using (var stream = new FileStream(
                 path,
@@ -137,13 +138,77 @@ namespace API.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> FormatCasesByCron()
+        {
+            var path = Path.Combine(
+              _env.ContentRootPath,
+              String.Format("Data/Source/Trials/TexasCases.xlsx"));
+
+            using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read))
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var ep = new ExcelPackage(stream))
+                {
+                    // get the first worksheet
+                    var ws = ep.Workbook.Worksheets[0];
+                    var lstCounties = _context.CasesByCounty.Select(s => s.County).Distinct().ToList();
+                    
+
+                    // Initialize the record counters
+                    var nCountyCases = 0;
+                    // iterate through all rows, skipping the first one
+                    
+
+                    return new JsonResult(new
+                    {
+                        CasesByCounty = nCountyCases
+                    });
+                }
+
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ImportCasesByCron()
+        {
+            var path = Path.Combine(
+               _env.ContentRootPath,
+               String.Format("Data/Source/Trials/TexasCases.xlsx"));
+
+            //var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+
+            var client = new HttpClient();
+            var response = await client.GetAsync(@"https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyCaseCountData.xlsx");
+
+                using (var streamer = await response.Content.ReadAsStreamAsync())
+                {
+                    var fileInfo = new FileInfo(path);
+                    using (var fileStream = fileInfo.OpenWrite())
+                    {
+                        await streamer.CopyToAsync(fileStream);
+                    }
+
+
+                }
+
+                return new JsonResult(new
+                    {
+                        HospByCounty = 0
+                    });
+            }
+
 
         [HttpGet]
         public async Task<IActionResult> ImportHospitalizationByCounty()
         {
             var path = Path.Combine(
                _env.ContentRootPath,
-               String.Format("Data/Source/Covid/Hospitalizations/TexasCOVID19HospitalizationsbyTSA622.xlsx"));
+               String.Format("Data/Source/Covid/Hospitalizations/TexasCOVID19HospitalizationsbyTSA624.xlsx"));
 
             using (var stream = new FileStream(
                 path,
