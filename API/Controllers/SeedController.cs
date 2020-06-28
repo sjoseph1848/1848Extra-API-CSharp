@@ -159,11 +159,12 @@ namespace API.Controllers
                     // get the first worksheet
                     var ws = ep.Workbook.Worksheets[0];
                     var lstCounties = _context.CasesByCounty.Select(s => s.County).Distinct().ToList();
+                    var lstHostDates = _context.CasesByCounty.ToList();
                     int nums = lstCounties.Count;
                     int rowCnt = ws.Dimension.End.Row;
                     int colCnt = ws.Dimension.End.Column + 1;
                     DateTime startingDate = new DateTime(2020, 03, 04);
-                    List<CasesByCounty> CasesYall = new List<CasesByCounty>();
+                    
                     var nCountyCases = 0;
                     for ( var i = 0; i < lstCounties.Count; i++)
                     {
@@ -173,26 +174,30 @@ namespace API.Controllers
                             {
                                 for(var k = 35; k < colCnt; k++)
                                 {
-                                    var casesByCounty = new CasesByCounty();
-                                    casesByCounty.Date = startingDate.AddDays(k).Date;
-                                    casesByCounty.County = lstCounties[i];
-                                    casesByCounty.Cases = ws.Cells[j,k].GetValue<int>();
-                                    CasesYall.Add(casesByCounty);
-                                    
+                                    var dateId = startingDate.AddDays(k).Date;
+                                    if (lstHostDates.Where(d => d.Date == dateId).Count() == 0)
+                                    {
+                                        var casesByCounty = new CasesByCounty();
+                                        casesByCounty.Date = dateId;
+                                        casesByCounty.County = lstCounties[i];
+                                        casesByCounty.Cases = ws.Cells[j, k].GetValue<int>();
+                                       
+                                        // create the hospbycounty entity and fill it with xlsx data 
+                                        // save the hospbycounty to the db 
+                                        _context.CasesByCounty.Add(casesByCounty);
+                                        await _context.SaveChangesAsync();
+
+                                        //increment the counter 
+                                        nCountyCases++;
+                                    }
                                 }
                             }
                         }
                     }
 
-                    var dallas = CasesYall.Where(x => x.County == "Dallas");
-                    // Initialize the record counters
-
-                    // iterate through all rows, skipping the first one
-
-
                     return new JsonResult(new
                     {
-                        dallas
+                        CasesByCounty = nCountyCases
                     });
                 }
 
@@ -276,11 +281,12 @@ namespace API.Controllers
                     // get the first worksheet
                     var ws = ep.Workbook.Worksheets[0];
                     var lstCounties = _context.DeathsByCounty.Select(s => s.County).Distinct().ToList();
+                    var lstHostDates = _context.DeathsByCounty.ToList();
                     int nums = lstCounties.Count;
                     int rowCnt = ws.Dimension.End.Row;
                     int colCnt = ws.Dimension.End.Column + 1;
+                    int nFatalities = 0;
                     DateTime startingDate = new DateTime(2020, 03, 01);
-                    List<DeathByCounty> CasesYall = new List<DeathByCounty>();
                     
                     for (var i = 0; i < lstCounties.Count; i++)
                     {
@@ -290,23 +296,31 @@ namespace API.Controllers
                             {
                                 for (var k = 38; k < colCnt; k++)
                                 {
-                                    var fatalitiesByCounty = new DeathByCounty();
-                                    fatalitiesByCounty.Date = startingDate.AddDays(k).Date;
-                                    fatalitiesByCounty.County = lstCounties[i];
-                                    fatalitiesByCounty.Deaths = ws.Cells[j, k].GetValue<int>();
-                                    CasesYall.Add(fatalitiesByCounty);
+                                    var dateId = startingDate.AddDays(k).Date;
+                                    if (lstHostDates.Where(d => d.Date == dateId).Count() == 0)
+                                    {
+                                        var fatalitiesByCounty = new DeathByCounty();
+                                        fatalitiesByCounty.Date = dateId;
+                                        fatalitiesByCounty.County = lstCounties[i];
+                                        fatalitiesByCounty.Deaths = ws.Cells[j, k].GetValue<int>();
 
+                                        // create the hospbycounty entity and fill it with xlsx data 
+                                        // save the hospbycounty to the db 
+                                        _context.DeathsByCounty.Add(fatalitiesByCounty);
+                                        await _context.SaveChangesAsync();
+
+                                        //increment the counter 
+                                        nFatalities++;
+                                    }
                                 }
                             }
                         }
                     }
-
-                    var dallas = CasesYall.Where(x => x.County == "Dallas");
                     // Initialize the record counters
                     // iterate through all rows, skipping the first one
                     return new JsonResult(new
                     {
-                        dallas
+                        DeathByCounty = nFatalities
                     });
                 }
 
@@ -356,12 +370,13 @@ namespace API.Controllers
                     // get the first worksheet
                     var ws = ep.Workbook.Worksheets[0];
                     var lstCounties = _context.CountyHospitalizations.Select(s => s.County).Distinct().ToList();
+                    var lstHostDates = _context.CountyHospitalizations.ToList();
                     int nums = lstCounties.Count;
                     int rowCnt = ws.Dimension.End.Row;
                     int colCnt = ws.Dimension.End.Column + 1;
                     DateTime startingDate = new DateTime(2020, 04, 05);
                     List<HospByCounty> CasesYall = new List<HospByCounty>();
-
+                    var nCounty = 0;
                     for (var i = 0; i < lstCounties.Count; i++)
                     {
                         for (var j = 4; j < 27; j++)
@@ -370,23 +385,31 @@ namespace API.Controllers
                             {
                                 for (var k = 3; k < colCnt; k++)
                                 {
-                                    var hosp = new HospByCounty();
-                                    hosp.Date = startingDate.AddDays(k).Date;
-                                    hosp.County = lstCounties[i];
-                                    hosp.Hospitalizations = ws.Cells[j, k].GetValue<int>();
-                                    CasesYall.Add(hosp);
+                                    var dateId = startingDate.AddDays(k).Date;
+                                    if(lstHostDates.Where(d => d.Date == dateId).Count() == 0)
+                                    {
+                                        var hosp = new HospByCounty();
+                                        hosp.Date = startingDate.AddDays(k).Date;
+                                        hosp.County = lstCounties[i];
+                                        hosp.Hospitalizations = ws.Cells[j, k].GetValue<int>();
+                                        CasesYall.Add(hosp);
 
+                                        // create the hospbycounty entity and fill it with xlsx data 
+                                        // save the hospbycounty to the db 
+                                        _context.CountyHospitalizations.Add(hosp);
+                                        await _context.SaveChangesAsync();
+
+                                        //increment the counter 
+                                        nCounty++;
+                                    }
                                 }
                             }
                         }
                     }
 
-                    var dallas = CasesYall.Where(x => x.County == "Dallas/Ft. Worth");
-                    // Initialize the record counters
-                    // iterate through all rows, skipping the first one
                     return new JsonResult(new
                     {
-                        dallas
+                        HospByCounty = nCounty
                     });
                 }
 
