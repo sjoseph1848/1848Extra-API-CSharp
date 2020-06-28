@@ -9,6 +9,7 @@ using API.Data.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
 
 namespace API.Controllers
@@ -19,13 +20,15 @@ namespace API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
-
+       
         public SeedController(
             ApplicationDbContext context,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env
+            )
         {
             _context = context;
             _env = env;
+            
         }
         [HttpGet]
         public async Task<IActionResult> ImportDeathByCounty()
@@ -156,16 +159,40 @@ namespace API.Controllers
                     // get the first worksheet
                     var ws = ep.Workbook.Worksheets[0];
                     var lstCounties = _context.CasesByCounty.Select(s => s.County).Distinct().ToList();
-                    
-
-                    // Initialize the record counters
+                    int nums = lstCounties.Count;
+                    int rowCnt = ws.Dimension.End.Row;
+                    int colCnt = ws.Dimension.End.Column + 1;
+                    DateTime startingDate = new DateTime(2020, 03, 04);
+                    List<CasesByCounty> CasesYall = new List<CasesByCounty>();
                     var nCountyCases = 0;
+                    for ( var i = 0; i < lstCounties.Count; i++)
+                    {
+                        for(var j = 4; j < 258; j++)
+                        {
+                            if(lstCounties[i] == ws.Cells[j, 1].Value.ToString())
+                            {
+                                for(var k = 35; k < colCnt; k++)
+                                {
+                                    var casesByCounty = new CasesByCounty();
+                                    casesByCounty.Date = startingDate.AddDays(k).Date;
+                                    casesByCounty.County = lstCounties[i];
+                                    casesByCounty.Cases = ws.Cells[j,k].GetValue<int>();
+                                    CasesYall.Add(casesByCounty);
+                                    
+                                }
+                            }
+                        }
+                    }
+
+                    var dallas = CasesYall.Where(x => x.County == "Dallas");
+                    // Initialize the record counters
+
                     // iterate through all rows, skipping the first one
-                    
+
 
                     return new JsonResult(new
                     {
-                        CasesByCounty = nCountyCases
+                        dallas
                     });
                 }
 
@@ -201,6 +228,170 @@ namespace API.Controllers
                         HospByCounty = 0
                     });
             }
+
+        [HttpGet]
+        public async Task<IActionResult> ImportFatalitiesByCron()
+        {
+            var path = Path.Combine(
+               _env.ContentRootPath,
+               String.Format("Data/Source/Trials/TexasFatalities.xlsx"));
+
+            //var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+
+            var client = new HttpClient();
+            var response = await client.GetAsync(@"https://dshs.texas.gov/coronavirus/TexasCOVID19DailyCountyFatalityCountData.xlsx");
+
+            using (var streamer = await response.Content.ReadAsStreamAsync())
+            {
+                var fileInfo = new FileInfo(path);
+                using (var fileStream = fileInfo.OpenWrite())
+                {
+                    await streamer.CopyToAsync(fileStream);
+                }
+
+
+            }
+
+            return new JsonResult(new
+            {
+                FatalitiesByCounty = 0
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FormatFatalitiesByCron()
+        {
+            var path = Path.Combine(
+              _env.ContentRootPath,
+              String.Format("Data/Source/Trials/TexasFatalities.xlsx"));
+
+            using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read))
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var ep = new ExcelPackage(stream))
+                {
+                    // get the first worksheet
+                    var ws = ep.Workbook.Worksheets[0];
+                    var lstCounties = _context.DeathsByCounty.Select(s => s.County).Distinct().ToList();
+                    int nums = lstCounties.Count;
+                    int rowCnt = ws.Dimension.End.Row;
+                    int colCnt = ws.Dimension.End.Column + 1;
+                    DateTime startingDate = new DateTime(2020, 03, 01);
+                    List<DeathByCounty> CasesYall = new List<DeathByCounty>();
+                    
+                    for (var i = 0; i < lstCounties.Count; i++)
+                    {
+                        for (var j = 4; j < 258; j++)
+                        {
+                            if (lstCounties[i] == ws.Cells[j, 1].Value.ToString())
+                            {
+                                for (var k = 38; k < colCnt; k++)
+                                {
+                                    var fatalitiesByCounty = new DeathByCounty();
+                                    fatalitiesByCounty.Date = startingDate.AddDays(k).Date;
+                                    fatalitiesByCounty.County = lstCounties[i];
+                                    fatalitiesByCounty.Deaths = ws.Cells[j, k].GetValue<int>();
+                                    CasesYall.Add(fatalitiesByCounty);
+
+                                }
+                            }
+                        }
+                    }
+
+                    var dallas = CasesYall.Where(x => x.County == "Dallas");
+                    // Initialize the record counters
+                    // iterate through all rows, skipping the first one
+                    return new JsonResult(new
+                    {
+                        dallas
+                    });
+                }
+
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ImportHospitalizationByCron()
+        {
+            var path = Path.Combine(
+               _env.ContentRootPath,
+               String.Format("Data/Source/Trials/TexasHospitalizations.xlsx"));
+
+            var client = new HttpClient();
+            var response = await client.GetAsync(@"https://dshs.texas.gov/coronavirus/TexasCOVID-19HospitalizationsOverTimebyTSA.xlsx");
+
+            using (var streamer = await response.Content.ReadAsStreamAsync())
+            {
+                var fileInfo = new FileInfo(path);
+                using (var fileStream = fileInfo.OpenWrite())
+                {
+                    await streamer.CopyToAsync(fileStream);
+                }
+            }
+
+            return new JsonResult(new
+            {
+                HospitalizationsByCounty = 0
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FormatHospitalizationsByCron()
+        {
+            var path = Path.Combine(
+              _env.ContentRootPath,
+              String.Format("Data/Source/Trials/TexasHospitalizations.xlsx"));
+
+            using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read))
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var ep = new ExcelPackage(stream))
+                {
+                    // get the first worksheet
+                    var ws = ep.Workbook.Worksheets[0];
+                    var lstCounties = _context.CountyHospitalizations.Select(s => s.County).Distinct().ToList();
+                    int nums = lstCounties.Count;
+                    int rowCnt = ws.Dimension.End.Row;
+                    int colCnt = ws.Dimension.End.Column + 1;
+                    DateTime startingDate = new DateTime(2020, 04, 05);
+                    List<HospByCounty> CasesYall = new List<HospByCounty>();
+
+                    for (var i = 0; i < lstCounties.Count; i++)
+                    {
+                        for (var j = 4; j < 27; j++)
+                        {
+                            if (lstCounties[i] == ws.Cells[j, 2].Value.ToString())
+                            {
+                                for (var k = 3; k < colCnt; k++)
+                                {
+                                    var hosp = new HospByCounty();
+                                    hosp.Date = startingDate.AddDays(k).Date;
+                                    hosp.County = lstCounties[i];
+                                    hosp.Hospitalizations = ws.Cells[j, k].GetValue<int>();
+                                    CasesYall.Add(hosp);
+
+                                }
+                            }
+                        }
+                    }
+
+                    var dallas = CasesYall.Where(x => x.County == "Dallas/Ft. Worth");
+                    // Initialize the record counters
+                    // iterate through all rows, skipping the first one
+                    return new JsonResult(new
+                    {
+                        dallas
+                    });
+                }
+
+            }
+        }
 
 
         [HttpGet]
